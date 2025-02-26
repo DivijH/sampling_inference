@@ -17,8 +17,10 @@ from transformers import pipeline
 os.environ['HF_HOME'] = '/data/data/shri/Huggingface_model_cache'
 
 INPUT_FILE = '../data/gpqa_diamond.jsonl'
-OUTPUT_FILE = '../data/responses/gpqa_diamond_mcq/gpqa_diamond_mcq_sampling_5_2.jsonl'
-CUDA_VISIBLE_DEVICES = '6'
+OUTPUT_FILE = '../data/responses/gpqa_diamond_mcq/gpqa_diamond_mcq_sampling_3_3.jsonl'
+CUDA_VISIBLE_DEVICES = '4'
+NUMBER_IDEAS = 3
+NUMBER_RESPONSES_PER_IDEA = 3
 INDEX = 0
 
 MODEL_NAME = 'meta-llama/Llama-3.2-3B-Instruct'
@@ -42,6 +44,8 @@ def get_args():
     parser.add_argument('--huggingface_token', type=str, default=HUGGINGFACE_TOKEN, required=False, help='Hugging Face API token.')
     parser.add_argument('--input_file', type=str, default=INPUT_FILE, required=False, help='Input File that is processed.')
     parser.add_argument('--output_file', type=str, default=OUTPUT_FILE, required=False, help='Output File where results are stored.')
+    parser.add_argument('--number_ideas', type=int, default=NUMBER_IDEAS, required=False, help='Number of ideas to be generated.')
+    parser.add_argument('--number_responses_per_idea', type=int, default=NUMBER_RESPONSES_PER_IDEA, required=False, help='Number of responses to be generated per idea.')
     return parser.parse_args()
 
 class Model:
@@ -121,7 +125,6 @@ class Model:
                         # ele['responses'].append(self.get_response(f'You are an expert in mathematics and science. You will be given a graduate-level problem and an idea of how to solve that problem. Solve the question using that idea, and give the final answer in the following format\nThe final answer is: <YOUR FINAL ANSWER>. ONLY use the idea to solve that problem, do NOT use your own intuition.\n\n[PROBLEM]\n{ele["question"]}\n\n[IDEA]\n{idea}'))
                         ######### GPQA-Diamond-MCQ #########
                         ele['responses'].append(self.get_response(f'You are an expert in mathematics and science. You will be given a graduate-level problem and an idea of how to solve that problem. Solve the question using that idea, and select the correct choice. ONLY use the idea to solve that problem, do NOT use your own intuition.\n\n[PROBLEM]\n{ele["question"]}\n\n[CHOICES]\n{"\n".join(f"{chr(97+i)}) {item.strip()}" for i, item in enumerate(ele["options"]))}\n\n[IDEA]\n{idea}\n\nGive the final answer in the following format\nThe final answer is: <FINAL ANSWER>. '))
-
                 self._save_data(output_file, ele)
                 pbar.update(1)
 
@@ -138,7 +141,7 @@ def main():
         cache_dir = args.cache_dir,
         huggingface_token = args.huggingface_token
     )
-    model.idea_sampling(args.input_file, args.output_file, number_ideas=5, number_responses_per_idea=2, index=args.index)
+    model.idea_sampling(args.input_file, args.output_file, number_ideas=args.number_ideas, number_responses_per_idea=args.number_responses_per_idea, index=args.index)
 
 
 if __name__ == "__main__":

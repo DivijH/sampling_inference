@@ -3,10 +3,13 @@ import json
 from pprint import pprint
 from tqdm import tqdm
 
+# DATASET = 'gsm8k'
+# DATASET = 'gpqa_diamond'
 DATASET = 'gpqa_diamond_mcq'
 # FILE = f'{DATASET}_inference.jsonl'
 # FILE = f'{DATASET}_bon_10.jsonl'
-FILE = f'{DATASET}_sampling_5_2.jsonl'
+# FILE = f'{DATASET}_sampling_5_2.jsonl'
+FILE = f'{DATASET}_sampling_3_3.jsonl'
 FILE_PATH = f'../data/responses/{DATASET}/{FILE}'
 VALIDATE_PATH = f'../data/validated/{DATASET}/{FILE}'
 
@@ -15,7 +18,7 @@ def extract_answers(ele):
     answers = []
     if DATASET in ['gsm8k', 'gpqa_diamond']:
         for response in responses:
-            final_answer = response.split('The final answer is')[-1].replace(':','').replace('$','').replace('\\','').replace('boxed{','').replace('}','').strip()
+            final_answer = response.split('The final answer is')[-1].replace(':','').replace(',','').replace('$','').replace('\\','').replace('boxed{','').replace('}','').strip()
             answers.append(final_answer)
     elif DATASET in ['gpqa_diamond_mcq']:
         for response in responses:

@@ -2,3 +2,4 @@ keys/
 *.key
 responses/
 *.log
+data_gen/*.json

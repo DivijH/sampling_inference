@@ -1,5 +1,7 @@
 keys/
 *.key
+tmp*
 responses/
 *.log
-data_gen/*.json
+raw_data/
+__pycache__/

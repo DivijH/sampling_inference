@@ -1,0 +1,37 @@
+{
+    "id": 2907,
+    "question": "Let $T=10$. Ann spends 80 seconds climbing up a $T$ meter rope at a constant speed, and she spends 70 seconds climbing down the same rope at a constant speed (different from her upward speed). Ann begins climbing up and down the rope repeatedly, and she does not pause after climbing the length of the rope. After $T$ minutes, how many meters will Ann have climbed in either direction?",
+    "solution": [
+        "In 150 seconds (or 2.5 minutes), Ann climbs up and down the entire rope. Thus in $T$ minutes, she makes $\\left\\lfloor\\frac{T}{2.5}\\right\\rfloor$ round trips, and therefore climbs $2 T\\left\\lfloor\\frac{T}{2.5}\\right\\rfloor$ meters. After making all her round trips, there are $t=60\\left(T-2.5\\left\\lfloor\\frac{T}{2.5}\\right\\rfloor\\right)$ seconds remaining. If $t \\leq 80$, then the remaining distance climbed is $T \\cdot \\frac{t}{80}$ meters, and if $t>80$, then the distance climbed is $T+T \\cdot\\left(\\frac{t-80}{70}\\right)$ meters. In general, the total distance in meters that Ann climbs is\n\n$$\n2 T\\left\\lfloor\\frac{T}{2.5}\\right\\rfloor+T \\cdot \\min \\left(1, \\frac{60\\left(T-2.5\\left\\lfloor\\frac{T}{2.5}\\right\\rfloor\\right)}{80}\\right)+T \\cdot \\max \\left(0, \\frac{60\\left(T-2.5\\left\\lfloor\\frac{T}{2.5}\\right\\rfloor\\right)-80}{70}\\right) .\n$$\n\nWith $T=10$, Ann makes exactly 4 round trips, and therefore climbs a total of $4 \\cdot 2 \\cdot 10=\\mathbf{8 0}$ meters."
+    ],
+    "final_answer": [
+        "80"
+    ],
+    "context": null,
+    "image_1": null,
+    "image_2": null,
+    "image_3": null,
+    "image_4": null,
+    "image_5": null,
+    "modality": "Text-only",
+    "difficulty": "Competition",
+    "is_multiple_answer": false,
+    "unit": null,
+    "answer_type": "Numerical",
+    "error": null,
+    "question_type": "Open-ended",
+    "subfield": "Algebra",
+    "subject": "Math",
+    "language": "English",
+    "responses": [
+        "Reasoning:\n\nTo solve this problem, we need to find the total distance Ann climbs up and down the rope after T minutes. \n\nFirst, we need to find the speed of Ann when she is climbing up and down the rope. Let's denote the speed of Ann when climbing up the rope as 'u' meters per second and the speed when climbing down the rope as 'd' meters per second.\n\nWe are given that Ann spends 80 seconds climbing up the rope and 70 seconds climbing down the rope. We can use this information to find the speeds 'u' and 'd'. \n\nWe know that distance = speed * time. So, for the upward climb, the distance is u * 80, and for the downward climb, the distance is d * 70.\n\nSince the length of the rope is T meters, we can set up the following equations:\n\nu * 80 = T\nd * 70 = T\n\nSolving these equations for 'u' and 'd', we get:\n\nu = T / 80\nd = T / 70\n\nNow that we have the speeds 'u' and 'd', we can find the total distance Ann climbs up and down the rope after T minutes. Since Ann repeats the climb up and down, the total distance is twice the sum of the distances climbed up and down.\n\nTotal distance climbed up = 2 * u * T / 60 (converting T minutes to seconds)\nTotal distance climbed down = 2 * d * T / 60 (converting T minutes to seconds)\n\nSince the total distance climbed up and down is equal to the length of the rope, we can set up the following equation:\n\n2 * u * T / 60 + 2 * d * T / 60 = T\n\nSubstituting the values of 'u' and 'd' in terms of T, we get:\n\n2 * (T / 80) * T / 60 + 2 * (T / 70) * T / 60 = T\n\nSimplifying this equation, we get:\n\nT / 48 + T / 42 = T\n\nMultiplying both sides by 1680 (the least common multiple of 48 and 42), we get:\n\n7T + 4T = 1680T\n\nSimplifying further, we get:\n\n11T = 1680T\n\nDividing both sides by 1680, we get:\n\nT / 152 = 1\n\nSimplifying further, we get:\n\nT = 152\n\nNow that we have found the value of T, we can find the total distance Ann climbs up and down the rope after T minutes.\n\nTotal distance climbed up = 2 * (152 / 80) * 152 / 60\nTotal distance climbed down = 2 * (152 / 70) * 152 / 60\n\nSimplifying these expressions, we get:\n\nTotal distance climbed up = 152\nTotal distance climbed down = 152\n\nSince the total distance climbed up and down is equal to the length of the rope, the total distance Ann climbs is:\n\nTotal distance = 152 + 152 = 304 meters\n\nThe final answer is 304."
+    ],
+    "extracted_answers": [
+        " 304."
+    ],
+    "variants": 1,
+    "correctness": [
+        false
+    ],
+    "correct": false
+}

@@ -1,7 +1,3 @@
-'''
-Remember to update the idea prompt and the question prompt.
-'''
-
 import os
 from pathlib import Path
 import argparse

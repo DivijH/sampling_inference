@@ -1,7 +1,3 @@
-'''
-Remember to update the idea prompt and the question prompt.
-'''
-
 import os
 from pathlib import Path
 import argparse
@@ -16,20 +12,21 @@ from transformers import pipeline
 
 os.environ['HF_HOME'] = '/data/data/shri/Huggingface_model_cache'
 
-INPUT_FILE = '../data/gpqa_diamond.jsonl'
-OUTPUT_FILE = '../data/responses/gpqa_diamond_mcq/gpqa_diamond_mcq_sampling_3_3.jsonl'
-CUDA_VISIBLE_DEVICES = '4'
-NUMBER_IDEAS = 3
-NUMBER_RESPONSES_PER_IDEA = 3
+DATASET = 'grid_puzzle'
+INPUT_FILE = f'../../../data/{DATASET}.jsonl'
+OUTPUT_FILE = f'../../../data/responses/{DATASET}/{DATASET}_sampling_5_2.jsonl'
+CUDA_VISIBLE_DEVICES = '3'
+NUMBER_IDEAS = 5
+NUMBER_RESPONSES_PER_IDEA = 2
 INDEX = 0
 
 MODEL_NAME = 'meta-llama/Llama-3.2-3B-Instruct'
 TOKENIZER_NAME = MODEL_NAME
 BATCH = 1                           # 1 will be used as a single inference. For batch inference, use a number greater than 1.
-CONTEXT_LENGTH = 1024
+CONTEXT_LENGTH = 4096
 TEMPERATURE = 0
 CACHE_DIR = '/data/data/shri/Huggingface_model_cache'   # '/scratch/dhanda/huggingface_cache'
-HUGGINGFACE_TOKEN = open('keys/huggingface.key').read().strip()
+HUGGINGFACE_TOKEN = open('../../keys/huggingface.key').read().strip()
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -86,7 +83,7 @@ class Model:
                 # {"role": "system", "content": "You answer the question in one word"},
                 {"role": "user", "content": text},
             ],
-            max_new_tokens = 512,
+            max_new_tokens = self.context_length,
             # do_sample = True
         )
         return outputs[0]["generated_text"][-1]['content']
@@ -95,36 +92,55 @@ class Model:
         numbered_points = re.findall(r'\d+\.\s(.*?)(?=\n\n\d+\.|\Z)', ideas, re.DOTALL)
         return [point.strip() for point in numbered_points]
 
-    def get_ideas(self, question, number_ideas):
-        ######### GSM8k #########
-        # text = f'You are an expert in mathematical reasoning. You will be given a mathematical problem. Please return {number_ideas} different ways you can solve this problem. Do NOT give a solution, just your a high-level idea of how you can solve this problem. Be as creative as possible, going beyond what you think is intuitively correct. Give your ideas in a numbered list starting from 1.\n\n[PROBLEM]\n{question}'
-        ######### GPQA-Diamond, MCQ #########
-        text = f'You are an expert in mathematics and science. You will be given a graduate-level scientific problem. Please return {number_ideas} different ways you can solve this problem. Do NOT give a solution, just your a high-level idea of how you can solve this problem. Be as creative as possible, going beyond what you think is intuitively correct. Give your ideas in a numbered list starting from 1.\n\n[PROBLEM]\n{question}'
+    def get_ideas(self, ele, number_ideas):
+        text = f'''
+You are an expert in understanding Grid Puzzles. Read the following problem statement and return {number_ideas} different ideas in which you can solve this puzzle.
+
+[PROBLEM]
+{ele['question']}
+
+[CONSTRAINTS]
+1. Do NOT give a solution, just {number_ideas} high-level ideas of how you approach this problem.
+2. Be as creative as possible, going beyond what you think is intuitively correct.
+3. Do NOT use coding or simulations to solve this question. Instead, provide methods or theories that can be used to solve the question.
+
+[FORMAT]
+Return {number_ideas} ways in the following format:
+
+1. <IDEA 1>
+2. <IDEA 2>
+...
+{number_ideas}. <IDEA {number_ideas}>
+'''
         
         ideas_correct = False
         no_retries = 0
         while not ideas_correct and no_retries < 5:
             no_retries += 1
-            ideas = self.get_response(text)
+            ideas = self.get_response(text.strip())
             extract_ideas = self.extract_ideas(ideas)
             if len(extract_ideas) == number_ideas:
                 ideas_correct = True
         return ideas, extract_ideas
 
     def idea_sampling(self, input_file, output_file, number_ideas=1, number_responses_per_idea=1, index=0):
-        data = self._load_data(input_file, index)
+        data = self._load_data(input_file, index)[:1]
+        Path(output_file).parent.mkdir(parents=True, exist_ok=True)
         with tqdm(total=len(data)) as pbar:
             for ele in data:
-                ele['ideas'], ele['extracted_ideas'] = self.get_ideas(ele['question'], number_ideas)
+                ele['ideas'], ele['extracted_ideas'] = self.get_ideas(ele, number_ideas)
                 ele['responses'] = []
                 for idea in ele['extracted_ideas']:
                     for _ in range(number_responses_per_idea):
-                        ######### GSM8k #########
-                        # ele['responses'].append(self.get_response(f'You are an expert in mathematical reasoning. You will be given a problem statement and an idea of how to solve that problem. Solve the question using that idea, and give the final answer in the following format\nThe final answer is: <YOUR FINAL ANSWER>. ONLY use the idea to solve that problem, do NOT use your own intuition.\n\n[PROBLEM]\n{ele["question"]}\n\n[IDEA]\n{idea}'))
-                        ######### GPQA-Diamond #########
-                        # ele['responses'].append(self.get_response(f'You are an expert in mathematics and science. You will be given a graduate-level problem and an idea of how to solve that problem. Solve the question using that idea, and give the final answer in the following format\nThe final answer is: <YOUR FINAL ANSWER>. ONLY use the idea to solve that problem, do NOT use your own intuition.\n\n[PROBLEM]\n{ele["question"]}\n\n[IDEA]\n{idea}'))
-                        ######### GPQA-Diamond-MCQ #########
-                        ele['responses'].append(self.get_response(f'You are an expert in mathematics and science. You will be given a graduate-level problem and an idea of how to solve that problem. Solve the question using that idea, and select the correct choice. ONLY use the idea to solve that problem, do NOT use your own intuition.\n\n[PROBLEM]\n{ele["question"]}\n\n[CHOICES]\n{"\n".join(f"{chr(97+i)}) {item.strip()}" for i, item in enumerate(ele["options"]))}\n\n[IDEA]\n{idea}\n\nGive the final answer in the following format\nThe final answer is: <FINAL ANSWER>. '))
+                        ele['responses'].append(self.get_response(f'''
+You are an expert in solving Grid Puzzles. Solve the given question using the provided idea.
+
+[PROBLEM]
+{ele['question']}
+
+[IDEA]
+{idea}
+'''.strip()))
                 self._save_data(output_file, ele)
                 pbar.update(1)
 
@@ -141,7 +157,13 @@ def main():
         cache_dir = args.cache_dir,
         huggingface_token = args.huggingface_token
     )
-    model.idea_sampling(args.input_file, args.output_file, number_ideas=args.number_ideas, number_responses_per_idea=args.number_responses_per_idea, index=args.index)
+    model.idea_sampling(
+        input_file = args.input_file,
+        output_file = args.output_file,
+        number_ideas = args.number_ideas,
+        number_responses_per_idea = args.number_responses_per_idea,
+        index = args.index
+    )
 
 
 if __name__ == "__main__":

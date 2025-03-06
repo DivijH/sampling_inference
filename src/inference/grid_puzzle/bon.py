@@ -12,9 +12,9 @@ from transformers import pipeline
 os.environ['HF_HOME'] = '/data/data/shri/Huggingface_model_cache'
 
 INPUT_FILE = '../../../data/grid_puzzle.jsonl'
-OUTPUT_FILE = '../../../data/responses/grid_puzzle/grid_puzzle_inference.jsonl'
+OUTPUT_FILE = '../../../data/responses/grid_puzzle/grid_puzzle_bon_10.jsonl'
 CUDA_VISIBLE_DEVICES = '2'
-NUMBER_SAMPLES = 1
+NUMBER_SAMPLES = 10
 INDEX = 0
 
 MODEL_NAME = 'meta-llama/Llama-3.2-3B-Instruct'
@@ -78,7 +78,7 @@ class Model:
         prompt = f'''
 You are an expert in solving Grid Puzzles. Read the following problem and answer in the specified format.
 
-[PUZZLE]
+[PROBLEM]
 {ele['question']}
 '''
         outputs = self.pipe([

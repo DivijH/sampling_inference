@@ -10,9 +10,9 @@ INFERENCE_PATH = f'../../data/{FOLDER_NAME}/{DATASET}/{DATASET}_inference.jsonl'
 BON_PATH = f'../../data/{FOLDER_NAME}/{DATASET}/{DATASET}_bon_10.jsonl'
 SAMPLING_PATH = f'../../data/{FOLDER_NAME}/{DATASET}/{DATASET}_sampling_5_2.jsonl'
 
-INDEX = 532
-BON_TRUE = True
-SAMPLING_TRUE = False
+INDEX = 502
+BON_TRUE = False
+SAMPLING_TRUE = True
 
 def save_data(data, path):
     with open(path, 'w') as f:

@@ -1,6 +1,4 @@
-# Better Sampling during Inference-Time
-
-Progress doc: [Shared Google Doc](https://docs.google.com/document/d/119ulmNh5qvPbuirHkUQeUdXRiQTpmSPLxCtS-v21bMY/edit?tab=t.0#heading=h.fyglhuvq4n1c)
+# GuidedSampling: Improving Diversity for Training Large Language Models
 
 ### Directory Structure
 

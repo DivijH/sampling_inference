@@ -3,7 +3,15 @@ keys/
 tmp*
 temp*
 responses/
+validated/
+responses_final/
 *.log
 raw_data/
 __pycache__/
 evals/*.json
+trained_models/
+sft_results/
+concepts/
+analysis/
+data_gen/
+verifier_inference/

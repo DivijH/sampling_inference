@@ -19,9 +19,11 @@ from typing import Optional
 import argparse
 
 # Set up environment and login credentials
-login(token='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')
+HUGGINGFACE_TOKEN = open('src/keys/huggingface.key', 'r').read().strip()
+WANDB_API_KEY = open('src/keys/wandb.key', 'r').read().strip()
+login(token=HUGGINGFACE_TOKEN)
 os.environ['HF_HOME'] = '/data/data/dhanda/huggingface_cache'
-os.environ['WANDB_API_KEY'] = '6d12fbafca76ee558ad46b08798ce77510024bbb'
+os.environ['WANDB_API_KEY'] = WANDB_API_KEY
 os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 
 @dataclass

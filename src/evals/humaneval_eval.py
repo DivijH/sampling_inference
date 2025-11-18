@@ -7,12 +7,13 @@ import contextlib
 
 SAVE = True
 # MODEL_NAME = 'meta-llama/Llama-3.2-3B-Instruct'
-# MODEL_NAME = 'Qwen/Qwen2.5-3B-Instruct'
-MODEL_NAME = 'iaa_fine_tuned_llama_model'
-DATASET = 'olympiad_bench'
+MODEL_NAME = 'Qwen/Qwen2.5-3B-Instruct'
+# MODEL_NAME = 'iaa_fine_tuned_llama_model'
+DATASET = 'humaneval'
 
-FILE = f'{DATASET}_rs_10.json'
+# FILE = f'{DATASET}_rs_10.json'
 # FILE = f'{DATASET}_gs_20_5.json'
+FILE = f'{DATASET}_tot_5_3_4.json'
 
 if 'fine_tuned' in MODEL_NAME:
     FILE_PATH = f'../../data/sft_results/{MODEL_NAME}/{FILE}'

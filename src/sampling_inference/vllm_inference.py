@@ -1,8 +1,6 @@
 import os
 from pathlib import Path
-import click
 import json
-import re
 from tqdm import tqdm
 from abc import ABC, abstractmethod
 
@@ -42,7 +40,7 @@ class VLLMInferenceBase(ABC):
             trust_remote_code = True,
             # swap_space: int = 4  # GiB                # The size (GiB) of CPU memory per GPU to use as swap space. This can be used for temporarily storing the states of the requests when their `best_of` sampling parameters are larger than 1. If all requests will have `best_of=1`, you can safely set this to 0. Otherwise, too small values may cause out-of-memory (OOM) errors.
             # tensor_parallel_size = 4,                 # The number of GPUs to use for distributed execution with tensor parallelism.
-            gpu_memory_utilization = 0.60,            # The ratio (between 0 and 1) of GPU memory to reserve for the model weights, activations, and KV cache. Higher values will increase the KV cache size and thus improve the model's throughput. However, if the value is too high, it may cause out-of-memory (OOM) errors.
+            # gpu_memory_utilization = 0.90,            # The ratio (between 0 and 1) of GPU memory to reserve for the model weights, activations, and KV cache. Higher values will increase the KV cache size and thus improve the model's throughput. However, if the value is too high, it may cause out-of-memory (OOM) errors.
         )
     
     def cleanup(self):
@@ -52,8 +50,8 @@ class VLLMInferenceBase(ABC):
     
     def _load_data(self, file_path, index):
         with open(file_path, 'r') as f:
-            data = [json.loads(ele) for ele in f.readlines()][index:]
-        return data[:3] if self.test_mode else data
+            data = [json.loads(ele) for ele in f.readlines()]
+        return data[:3] if self.test_mode else data[index:]
 
     def _save_data(self, file_path, data):
         file_ext = Path(file_path).suffix.lower()
@@ -73,13 +71,13 @@ class VLLMInferenceBase(ABC):
             }]
             if self.model_name.split('/')[0] == 'meta-llama' or 'trained_models' in self.model_name:
                 formatted_prompts.append('<|start_header_id|>user<|end_header_id|>\n\n' + prompt + '<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\n')
-            elif self.model_name.split('/')[0] == 'Qwen':
+            elif self.model_name.split('/')[0] in ['Qwen', 'google']:
                 formatted_prompts.append(self.tokenizer.apply_chat_template(message, tokenize=False, add_generation_prompt=True))
             else:
                 raise ValueError(f"Unsupported model name's format: {self.model_name}")
         return formatted_prompts
 
-    def get_responses(self, prompts, no_responses=1):
+    def get_responses(self, prompts, no_responses=1, get_finish_reason=False):
         if self.test_mode:
             no_responses = min(no_responses, 3)
         prompts = self._format_prompts(prompts)
@@ -97,18 +95,25 @@ class VLLMInferenceBase(ABC):
             use_tqdm = True
         )
         responses = []
+        finish_reasons = []
         for output in outputs:
             response_ele = []
+            finish_reason_ele = []
             for ele in output.outputs:
                 response_ele.append(ele.text)
+                finish_reason_ele.append(ele.finish_reason)
             responses.append(response_ele)
-        return responses
+            finish_reasons.append(finish_reason_ele)
+        if get_finish_reason:
+            return responses, finish_reasons
+        else:
+            return responses
 
     @abstractmethod
     def rs_prompt(self, ele):
         pass
 
-    def rs(self, input_file, output_file, number_responses=1, index=0):
+    def rs(self, input_file, output_file, number_responses=1, index=0, get_finish_reason=False):
         try:
             Path(output_file).parent.mkdir(parents=True, exist_ok=True)
             data = self._load_data(input_file, index)
@@ -117,9 +122,15 @@ class VLLMInferenceBase(ABC):
             for ele in data:
                 prompts.append(self.rs_prompt(ele))
 
-            responses = self.get_responses(prompts, no_responses=number_responses)
-            for response, data_ele in zip(responses, data):
-                data_ele['responses'] = response
+            if get_finish_reason:
+                responses, finish_reasons = self.get_responses(prompts, no_responses=number_responses, get_finish_reason=True)
+                for response, finish_reason, data_ele in zip(responses, finish_reasons, data):
+                    data_ele['responses'] = response
+                    data_ele['finish_reason'] = finish_reason
+            else:
+                responses = self.get_responses(prompts, no_responses=number_responses)
+                for response, data_ele in zip(responses, data):
+                    data_ele['responses'] = response
             self._save_data(output_file, data)
         finally:
             self.cleanup()
@@ -185,3 +196,35 @@ class VLLMInferenceBase(ABC):
             self._save_data(output_file, data)
         finally:
             self.cleanup()
+
+
+if __name__ == '__main__':
+    CUDA_VISIBLE_DEVICES = '7'
+    MODEL_NAME = 'meta-llama/Llama-3.2-3B-Instruct'
+    TOKENIZER_NAME = MODEL_NAME
+    CONTEXT_LENGTH = 1024
+    TEMPERATURE = 0.8
+    CACHE_DIR = '/data/data/dhanda/huggingface_cache'
+    HUGGINGFACE_TOKEN = open('../keys/huggingface.key', 'r').read().strip()
+
+    class TestVLLMInference(VLLMInferenceBase):
+        def rs_prompt(self, ele):
+            pass
+        def gs_initial_prompt(self, ele):
+            pass
+        def gs_more_prompt(self, ele, ideas_text):
+            pass
+        def gs_prompt(self, ele, idea):
+            pass
+    
+    vllm_inference = TestVLLMInference(
+        cuda_visible_devices=CUDA_VISIBLE_DEVICES,
+        model_name=MODEL_NAME,
+        tokenizer_name=TOKENIZER_NAME,
+        context_length=CONTEXT_LENGTH,
+        temperature=TEMPERATURE,
+        cache_dir=CACHE_DIR,
+        huggingface_token=HUGGINGFACE_TOKEN
+    )
+    vllm_inference.get_responses(['What is the capital of France?'], no_responses=1)
+    vllm_inference.cleanup()

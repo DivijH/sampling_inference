@@ -7,7 +7,7 @@
 Repeated Sampling (RS) is a simple inference-time algorithm that has been shown to improve model performance on complex tasks. Although it is an effective way of scaling inference time, it often struggles to generate diverse solution candidates, frequently relying on the same underlying approach to solve the problem and thus producing redundant samples. To address this limitation, we propose a new inference algorithm, GuidedSampling, which decouples the exploration and generation phases during inference, increasing diversity of generated candidate solutions. The exploration phase identifies multiple concepts that can be utilized to solve the problem, while the generation phase applies a specific concept to provide final solution candidates. We first define the theoretical bounds of GuidedSampling and then empirically demonstrate that it improves the performance of base model at pass@50 by on an average ~21.6% across various benchmarks compared to RS. Furthermore, models trained on trajectories of GuidedSampling exhibit substantial performance improvements at pass@5 by on an average ~9.7%, compared to models trained on traditional RS. Additionally, models trained with GuidedSampling increases the average number of concepts per instance (1.67 → 3.03), yielding a diverse set of candidates than traditional RS.
 
 ![GuidedSampling performance visualization](imgs/overview.png)
-![GuidedSampling performance visualization](imgs/results.png)
+![GuidedSampling performance visualization](imgs/result_new.png)
 
 The above results are for Llama-3.2-3B-Instruct, Qwen2.5-3B-Instruct, and Gemma-3-27b-it respectively.
 

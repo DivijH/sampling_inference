@@ -1,17 +1,15 @@
 from pathlib import Path
 import json
 from tqdm import tqdm
-import re
 
 SAVE = False
 # MODEL_NAME = 'meta-llama/Llama-3.2-3B-Instruct'
-# MODEL_NAME = 'Qwen/Qwen2.5-3B-Instruct'
-MODEL_NAME = 'google/gemma-3-27b-it'
+MODEL_NAME = 'Qwen/Qwen2.5-3B-Instruct'
 # MODEL_NAME = 'iaa_fine_tuned_llama_model'
-DATASET = 'math'
+DATASET = 'csqa'
 
-# FILE = f'{DATASET}_rs_1000.json'
-FILE = f'{DATASET}_gs_10_10.json'
+# FILE = f'{DATASET}_rs_100.json'
+FILE = f'{DATASET}_gs_5_20.json'
 # FILE = f'{DATASET}_tot_5_3_4.json'
 
 if 'fine_tuned' in MODEL_NAME:
@@ -19,33 +17,33 @@ if 'fine_tuned' in MODEL_NAME:
     VALIDATE_PATH = f'../../data/sft_results/{MODEL_NAME}/{FILE.replace(".json", "_validated.jsonl")}'
 else:
     FILE_PATH = f'../../data/responses/{MODEL_NAME.split("/")[-1]}/{FILE}'
-    # FILE_PATH = f'../../data/responses/Llama-3.2-3B-Instruct_this_is_for_paper_del_other/{FILE}'
     if FILE.endswith('.json'):
         VALIDATE_PATH = f'../../data/validated/{MODEL_NAME.split("/")[-1]}/{FILE.replace(".json", ".jsonl")}'
     else:
         VALIDATE_PATH = f'../../data/validated/{MODEL_NAME.split("/")[-1]}/{FILE}'
 
 
-def latex_to_expr(latex_str):
-    """
-    Used for Converting GroundTruth LaTeX-style fractions to a sympy-compatible string.
-    E.g., "\\frac{14}{3}" → "14/3"
-    """
-    latex_str = latex_str.strip()
-    # Replace LaTeX \frac{a}{b} with a/b
-    latex_str = re.sub(r'\\frac\{([^{}]+)\}\{([^{}]+)\}', r'(\1)/(\2)', latex_str)
-    return latex_str
-
 def extract_answers(ele):
     if isinstance(ele['responses'][0], list):    # For GS
         responses = [resp for idea_responses in ele['responses'] for resp in idea_responses]
-    else:  # For RS
+    else: # For RS
         responses = ele['responses']
     answers = []
     for response in responses:
         try:
-            final_answer = response.lower().split('**final answer**')[1].strip()
-            final_answer = latex_to_expr(final_answer).strip().replace('(','').replace(')', '').replace(' ', '')
+            final_answer = response.split('**Final Answer**')[1].strip()
+            if len(final_answer) in [1,2]:
+                option = final_answer[0]
+                if option == 'a':
+                    final_answer = ele['options'][0]
+                elif option == 'b':
+                    final_answer = ele['options'][1]
+                elif option == 'c':
+                    final_answer = ele['options'][2]
+                elif option == 'd':
+                    final_answer = ele['options'][3]
+            else:
+                final_answer = final_answer.strip()
         except Exception as e:
             final_answer = ''
         answers.append(final_answer.strip())
@@ -54,7 +52,7 @@ def extract_answers(ele):
 def is_instance_correct(ele):
     ele['correctness'] = []
     for answer in ele['extracted_answers']:
-        ele['correctness'].append(latex_to_expr(ele['answer'].strip()).strip().replace('(','').replace(')', '').replace(' ', '') in answer)
+        ele['correctness'].append(ele['answer'].lower().strip() in answer)
     return True in ele['correctness']
 
 if __name__ == '__main__':

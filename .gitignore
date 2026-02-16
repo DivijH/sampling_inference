@@ -4,6 +4,7 @@ tmp*
 temp*
 responses/
 validated/
+validated_majority_voting/
 responses_final/
 *.log
 raw_data/
@@ -15,3 +16,5 @@ concepts/
 analysis/
 data_gen/
 verifier_inference/
+data/graphs/
+wandb/

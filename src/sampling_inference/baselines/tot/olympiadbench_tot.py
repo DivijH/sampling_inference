@@ -4,12 +4,13 @@ import click
 
 
 # MODEL_NAME = 'meta-llama/Llama-3.2-3B-Instruct'
-MODEL_NAME = 'Qwen/Qwen2.5-3B-Instruct'
+# MODEL_NAME = 'Qwen/Qwen2.5-3B-Instruct'
+MODEL_NAME = 'google/gemma-3-27b-it'
 # MODEL_NAME = '../../../trained_models/iaa_fine_tuned_llama_model/checkpoint-100'
 TOKENIZER_NAME = MODEL_NAME
 DATASET = 'olympiad_bench'
 INPUT_FILE = f'../../../../data/{DATASET}.jsonl'
-CUDA_VISIBLE_DEVICES = '1'
+CUDA_VISIBLE_DEVICES = '4'
 INDEX = 0
 
 #### For ToT

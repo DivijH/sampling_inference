@@ -4,12 +4,13 @@ import click
 
 
 # MODEL_NAME = 'meta-llama/Llama-3.2-3B-Instruct'
-MODEL_NAME = 'Qwen/Qwen2.5-3B-Instruct'
+# MODEL_NAME = 'Qwen/Qwen2.5-3B-Instruct'
+MODEL_NAME = 'google/gemma-3-27b-it'
 # MODEL_NAME = '../../../trained_models/iaa_fine_tuned_llama_model/checkpoint-100'
 TOKENIZER_NAME = MODEL_NAME
 DATASET = 'math'
 INPUT_FILE = f'../../../../data/{DATASET}.jsonl'
-CUDA_VISIBLE_DEVICES = '1'
+CUDA_VISIBLE_DEVICES = '5'
 INDEX = 0
 
 #### For ToT
@@ -20,7 +21,7 @@ NUMBER_STEPS = 3     # Depth of the tree (number of reasoning steps)
 TOP_K = 4            # Number of top thoughts to keep at each step
 NUMBER_FINAL_SOLUTIONS = 100  # Number of complete solutions to generate from best paths
 MODEL_SLUG = MODEL_NAME.split("/")[-1]
-OUTPUT_FILE = f'../../../../data/responses/{MODEL_SLUG}/{DATASET}_tot_{NUMBER_THOUGHTS}_{NUMBER_STEPS}_{TOP_K}_temp.json'
+OUTPUT_FILE = f'../../../../data/responses/{MODEL_SLUG}/{DATASET}_tot_{NUMBER_THOUGHTS}_{NUMBER_STEPS}_{TOP_K}.json'
 
 
 CONTEXT_LENGTH = 1024
@@ -28,7 +29,7 @@ TEMPERATURE = 0.8
 CACHE_DIR = '/data/data/dhanda/huggingface_cache'
 HUGGINGFACE_TOKEN = open('../../../keys/huggingface.key', 'r').read().strip()
 os.environ['HF_HOME'] = CACHE_DIR
-TEST_MODE = True  # Run with 3 samples for testing
+TEST_MODE = False  # Run with 3 samples for testing
 
 
 class MathToTInference(ToTInferenceBase):

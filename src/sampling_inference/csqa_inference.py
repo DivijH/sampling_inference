@@ -5,30 +5,30 @@ import click
 
 
 # MODEL_NAME = 'meta-llama/Llama-3.2-3B-Instruct'
-# MODEL_NAME = 'Qwen/Qwen2.5-3B-Instruct'
-MODEL_NAME = 'google/gemma-3-27b-it'
+MODEL_NAME = 'Qwen/Qwen2.5-3B-Instruct'
+# MODEL_NAME = 'google/gemma-3-27b-it'
 # MODEL_NAME = '../../trained_models/iaa_fine_tuned_llama_model/checkpoint-100'
 TOKENIZER_NAME = MODEL_NAME
-DATASET = 'gpqa_diamond'
+DATASET = 'csqa'
 INPUT_FILE = f'../../data/{DATASET}.jsonl'
-CUDA_VISIBLE_DEVICES = '6'
+CUDA_VISIBLE_DEVICES = '5'
 INDEX = 0
-FINISH_REASON = True
+FINISH_REASON = False
 
 #### For RS
-NUMBER_SAMPLES = 10
-# OUTPUT_FILE = f'../../data/responses/{MODEL_NAME.split("/")[-1]}/{DATASET}_rs_10.json'
+NUMBER_SAMPLES = 100
+# OUTPUT_FILE = f'../../data/responses/{MODEL_NAME.split("/")[-1]}/{DATASET}_rs_100.json'
 # OUTPUT_FILE = f'../../data/sft_results/{MODEL_NAME.split("/")[-2]}/{DATASET}_rs_10.json'
 
 #### For GS
-MAX_IDEAS = 20
-NUMBER_RESPONSES_PER_IDEA = 5
+MAX_IDEAS = 5
+NUMBER_RESPONSES_PER_IDEA = 20
 OUTPUT_FILE = f'../../data/responses/{MODEL_NAME.split("/")[-1]}/{DATASET}_gs_{MAX_IDEAS}_{NUMBER_RESPONSES_PER_IDEA}.json'
 
 
 CONTEXT_LENGTH = 2048
 TEMPERATURE = 0.8
-CACHE_DIR = '/data/data/dhanda/huggingface_cache'
+CACHE_DIR = '/scr/dhanda/huggingface_cache'
 HUGGINGFACE_TOKEN = open('../keys/huggingface.key', 'r').read().strip()
 os.environ['HF_HOME'] = CACHE_DIR
 TEST_MODE = False  # Run with 3 samples for testing, with just 3 samples for each question
@@ -39,13 +39,12 @@ class GpqaDiamondVLLMInference(VLLMInferenceBase):
         options = "\n".join(f"{chr(97+i)}) {item.strip()}" for i, item in enumerate(ele["options"]))
         if self.model_name.split('/')[0] in ['meta-llama', 'Qwen', 'google']:
             return f'''
-You are an expert scientist and problem solver. Your task is to answer complex, graduate-level science questions with step-by-step solution.
+You are a helpful assistant. Your task is to answer the question with step-by-step solution.
 
 Follow these instructions precisely:
-1.  Present your solution as a step-by-step process, showing all calculations and reasoning.
+1.  Present your solution as a step-by-step process.
 2.  Explain each step clearly and concisely.
-3.  Use correct mathematical notation throughout your solution.
-4.  Conclude with the heading "**Final Answer**" followed by the answer.
+3.  Conclude with the heading "**Final Answer**" followed by the answer.
 
 QUESTION:
 {ele['question']}{options}
@@ -58,41 +57,40 @@ QUESTION:
             raise ValueError(f"Unsupported model name's format: {self.model_name}")
     
     def gs_initial_prompt(self, ele):
-        options = "\n".join(f"{chr(97+i)}) {item.strip()}" for i, item in enumerate(ele["options"]))
+        # options = "\n".join(f"{chr(97+i)}) {item.strip()}" for i, item in enumerate(ele["options"]))
         return f'''
-You are an expert scientist and problem solver. You will be presented with a complex, graduate-level science question and your task is to identify and state one single, specific theorem or fundamental concept that is most relevant and useful for solving the problem.
+You are a helpful assistant. Your task is to state a concept that is relevant and useful for answering the question.
 
 QUESTION:
-{ele['question']}{options}
+{ele['question']}
 
-Provide only the name of the theorem or concept, or a concise statement of the principle, that is most directly applicable to solving this problem. Do not attempt to solve the original problem. Only provide the theorem or concept.
+Provide the concept that is most directly applicable to answering the question. Do not answer the original question.
 '''.strip()
     
     def gs_more_prompt(self, ele, ideas_text):
-        options = "\n".join(f"{chr(97+i)}) {item.strip()}" for i, item in enumerate(ele["options"]))
+        # options = "\n".join(f"{chr(97+i)}) {item.strip()}" for i, item in enumerate(ele["options"]))
         return f'''
-You are an expert scientist and problem solver. You will be presented with a complex, graduate-level science question and a list of theorems and concepts that have already been proposed as potentially useful for solving the problem. Your task is to provide a *new* and *different* theorem or concept that is most relevant and useful for solving the problem.
+You are a helpful assistant. You will be presented with a question and a list of concepts that have already been proposed as potentially useful for answering the question. Your task is to provide a *new* and *different* concept that is relevant and useful for answering the question.
 
 QUESTION:
-{ele['question']}{options}
+{ele['question']}
 
 EXISTING CONCEPTS:
 {ideas_text}
 
-Provide only the name of the theorem or concept, or a concise statement of the principle, that is most directly applicable to solving this problem. Do not attempt to solve the original problem. Only provide the theorem or concept. If no new, distinct, and useful theorem or concept can be identified, respond with "No additional  concepts found."
+Provide the concept that is most directly applicable to answering the question. Do not answer the original question.
 '''
     
     def gs_prompt(self, ele, idea):
         options = "\n".join(f"{chr(97+i)}) {item.strip()}" for i, item in enumerate(ele["options"]))
         return f'''
-You are an expert scientist and problem solver. Your task is to answer complex, graduate-level science questions with step-by-step solution using the given concept.
+You are a helpful assistant. Your task is to answer the question with step-by-step solution using the provided concept.
 
 Follow these instructions precisely:
 1.  Present your solution as a step-by-step process, then select the correct option.
 2.  Explain each step clearly and concisely.
-3.  Use correct mathematical notation throughout your solution.
-4.  Solve the problem only using the given concept.
-5.  Conclude with the heading "**Final Answer**" followed by the answer.
+3.  Solve the question only using the provided concept.
+4.  Conclude with the heading "**Final Answer**" followed by the answer.
 
 QUESTION:
 {ele['question']}{options}
@@ -130,7 +128,7 @@ def main(cuda_visible_devices, model, tokenizer, context_length, temperature, in
         huggingface_token = huggingface_token,
         test_mode = test_mode
     )
-    if 'rs_' in output_file:
+    if 'rs' in output_file:
         model.rs(
             input_file = input_file,
             output_file = output_file,
@@ -138,7 +136,7 @@ def main(cuda_visible_devices, model, tokenizer, context_length, temperature, in
             index = index,
             get_finish_reason = finish_reason
         )
-    elif 'gs_' in output_file:
+    elif 'gs' in output_file:
         model.gs(
             input_file = input_file,
             output_file = output_file,

@@ -1,34 +1,44 @@
 # GuidedSampling: Steering LLMs Towards Diverse Candidate Solutions at Inference-Time
 
+🎉 Our paper has been accepted to [**ICLR 2026 (Poster)**](https://iclr.cc/virtual/2026/poster/10009336).
+
+
 ## Overview
-Repeated Sampling (RS) is a simple inference-time algorithm that has been shown to improve model performance on complex tasks. Although it is an effective way of scaling inference time, it often struggles to generate diverse solution candidates, frequently relying on the same underlying approach to solve the problem and thus producing redundant samples. To address this limitation, we propose a new inference algorithm, GuidedSampling, which decouples the exploration and generation phases during inference, increasing diversity of generated candidate solutions. The exploration phase identifies multiple concepts that can be utilized to solve the problem, while the generation phase applies a specific concept to provide final solution candidates. We first define the theoretical bounds of GuidedSampling and then empirically demonstrate that it improves the performance of base model at pass@50 by on an average ~21.6% across various benchmarks compared to RS. Furthermore, models trained on trajectories of GuidedSampling exhibit substantial performance improvements at pass@5 by on an average ~9.7%, compared to models trained on traditional RS. Additionally, models trained with GuidedSampling increases the average number of concepts per instance (1.67 -> 3.03), yielding a diverse set of candidates than traditional RS.
+Repeated Sampling (RS) is a simple inference-time algorithm that has been shown to improve model performance on complex tasks. Although it is an effective way of scaling inference time, it often struggles to generate diverse solution candidates, frequently relying on the same underlying approach to solve the problem and thus producing redundant samples. To address this limitation, we propose a new inference algorithm, GuidedSampling, which decouples the exploration and generation phases during inference, increasing diversity of generated candidate solutions. The exploration phase identifies multiple concepts that can be utilized to solve the problem, while the generation phase applies a specific concept to provide final solution candidates. We first define the theoretical bounds of GuidedSampling and then empirically demonstrate that it improves the performance of base model at pass@50 by on an average ~21.6% across various benchmarks compared to RS. Furthermore, models trained on trajectories of GuidedSampling exhibit substantial performance improvements at pass@5 by on an average ~9.7%, compared to models trained on traditional RS. Additionally, models trained with GuidedSampling increases the average number of concepts per instance (1.67 → 3.03), yielding a diverse set of candidates than traditional RS.
 
 ![GuidedSampling performance visualization](imgs/overview.png)
 ![GuidedSampling performance visualization](imgs/results.png)
 
+The above results are for Llama-3.2-3B-Instruct, Qwen2.5-3B-Instruct, and Gemma-3-27b-it respectively.
 
 ## Directory Structure
 
 ```
-├── README.md                            # This file
-├── requirements.txt                     # Python dependencies
-├── finetuning.py                        # Supervised fine-tuning script
-├── finetuning.sh                        # Training shell script
-├── trained_models/                      # Fine-tuned model checkpoints
+├── README.md                                # This file
+├── requirements.txt                         # Python dependencies
+├── finetuning.py                            # Supervised fine-tuning script
+├── finetuning.sh                            # Training shell script (launch for finetuning.py)
 ├── src/
-│   ├── sampling_inference/              # Core inference implementations
-│   │   ├── vllm_inference.py            # Base inference class
-│   │   ├── humaneval_inference.py       # HumanEval-specific inference
-│   │   ├── olympiadbench_inference.py   # OlympiadBench-specific inference
-│   │   ├── math_inference.py            # MATH-specific inference
-│   │   └── gpqa_inference.py            # GPQA-Diamond-specific inference
-│   ├── concept_extractor.py             # Concept extraction from responses
-│   ├── concept_calculator.py            # Concept diversity analysis
-│   └── keys/                            # API keys
-│       ├── huggingface.key              # Huggingface token
-│       └── wandb.key                    # Wandb token
+│   ├── sampling_inference/                  # Core inference implementations
+│   │   ├── vllm_inference.py                # Base inference class
+│   │   ├── humaneval_inference.py           # HumanEval-specific inference
+│   │   ├── olympiadbench_inference.py       # OlympiadBench-specific inference
+│   │   ├── math_inference.py                # MATH-specific inference
+│   │   ├── gpqa_inference.py                # GPQA-Diamond-specific inference
+|   |   └── baselines/
+|   |       ├── s1
+|   |       |   └── s1.py                    # Runs the budget-forcing s1 baseline
+|   |       └── tot
+|   |           └── tot.py                   # Runs tree-of-thought baseline
+│   ├── concept_extractor.py                 # Concept extraction from responses
+│   ├── concept_calculator.py                # Concept diversity analysis
+|   ├── data_gen
+|   |   ├── load_data.py                     # Downloads data from Huggingface
+|   |   └── olympiad_bench_process_data.py   # Processes and saves OlympiadBench
+│   └── keys/                                # API keys (Create this!)
+│       ├── huggingface.key                  # Huggingface token
+│       └── wandb.key                        # Wandb token
 └── data/
-    ├── graphs/                          # Analysis visualizations
     ├── humaneval.jsonl                  # HumanEval dataset
     ├── olympiad_bench.jsonl             # OlympiadBench dataset
     ├── gpqa_diamond.jsonl               # GPQA-Diamond dataset
@@ -122,7 +132,7 @@ python finetuning.py \
 ```
 
 
-<!-- ## Citation
+## Citation
 
 If you use this code in your research, please cite:
 
@@ -133,4 +143,4 @@ If you use this code in your research, please cite:
   journal={arXiv preprint arXiv:2510.03777},
   year={2025}
 }
-``` -->
+```
